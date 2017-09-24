@@ -2,23 +2,20 @@
 
 require 'gosu'
 
-require_relative 'cookie.rb'
-require_relative 'unit.rb'
+require_relative 'cookie'
+require_relative 'unit'
+require_relative 'cheat'
 
 def mkUnits(window, list)
   units = []
   list.each_with_index { |u, i|
-    units.push(Unit.new(window, 330, 50+i*70, u[0], u[1], u[2], u[3]))
+    units.push(Unit.new(window, 330, 100+i*70, u[0], u[1], u[2], u[3]))
   }
   units
 end
 
-
 class GameWindow < Gosu::Window
   attr_reader :font, :timeHidden, :cookie
-
-  Konami = [Gosu::KbUp, Gosu::KbUp, Gosu::KbDown, Gosu::KbDown, Gosu::KbLeft,
-    Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA]
 
   def initialize
     super(940, 600, false)  # Set size of window
@@ -35,7 +32,8 @@ class GameWindow < Gosu::Window
       ["factory",               "Factory",   1.3e5,    260],
       ["bank",                  "Bank",      1.4e6,  1.4e3],
     ])
-    @konamiProgress = 0
+    @konami = Cheat.new([Gosu::KbUp, Gosu::KbUp, Gosu::KbDown, Gosu::KbDown,
+      Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA])
     @timeHidden = true
     @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
     @goldCookieBonus = false
@@ -112,16 +110,16 @@ class GameWindow < Gosu::Window
     @font.draw("CPS: #{getTotalCps.round(1)}", 20, 300, 0)
 
     x = 330
-    @font.draw("Name", x+100, 20, 0)
-    @font.draw("Cost", x+200, 20, 0)
+    @font.draw("Name", x+100, 70, 0)
+    @font.draw("Cost", x+200, 70, 0)
     x += 30
     if @timeHidden
       x -= 100
     else
-      @font.draw("Time", x+300, 20, 0)
+      @font.draw("Time", x+300, 70, 0)
     end
-    @font.draw("Amount", x+400, 20, 0)
-    @font.draw("Cps", x+500, 20, 0)
+    @font.draw("Amount", x+400, 70, 0)
+    @font.draw("Cps", x+500, 70, 0)
 
     @goldCookie.draw
     @cookie.draw
@@ -137,14 +135,11 @@ class GameWindow < Gosu::Window
       close
     elsif id == Gosu::MsLeft
       mouse(mouse_x, mouse_y)   # We have clicked the mouse!
-    elsif id == Konami[@konamiProgress]
-      @konamiProgress += 1
-      if @konamiProgress == Konami.length
-        @cookie.increase(10 ** (getTotalCps/10 + 4).to_i)
-        @konamiProgress = 0
-      end
     else
-      @konamiProgress = 0
+      if @konami.keyPress(id)
+        @cookie.increase(8 ** (getTotalCps/10 + 3).to_i)
+      end
+      # Other cheats should be here
     end
   end
 end
