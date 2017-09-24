@@ -37,6 +37,9 @@ class GameWindow < Gosu::Window
     ])
     @konamiProgress = 0
     @timeHidden = true
+    @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
+    @goldCookieBonus = false
+    @goldCookieBonusTimer = 0
   end
 
   def needs_cursor?
@@ -48,13 +51,33 @@ class GameWindow < Gosu::Window
     @units.each { |inst|
       totalCps += inst.cps * inst.number
     }
+    if @goldCookieBonus
+      totalCps *= 1.5
+    end
     return totalCps
   end
 
   # This event is checked 60 times per second.
   def update
+    @goldCookie.tick
+
+    if @goldCookieBonus
+      @goldCookieBonusTimer -= 1
+
+      if @goldCookieBonusTimer <= 0
+        @goldCookieBonus = false
+        self.caption = "Cookie Clicker"
+      else
+        self.caption = "Cookie Clicker - [Golden Bonus Timer: #{(@goldCookieBonusTimer/60.0).round(1)}]"
+      end
+    end
+
+    multiplier = 1
+    if @goldCookieBonus
+      multiplier *= 1.5
+    end
     @units.each { |inst|
-      @cookie.increase(inst.cps * inst.number / 60.0)
+      @cookie.increase(multiplier * inst.cps * inst.number / 60.0)
     }
   end
 
@@ -63,6 +86,13 @@ class GameWindow < Gosu::Window
     # If the cookie is clicked, you earn one cookie
     if @cookie.in_range?(x, y)
       @cookie.increase(1)
+    end
+
+    if @goldCookie.in_range?(x, y)
+      @cookie.increase(getTotalCps * 100)
+      @goldCookie.reset
+      @goldCookieBonus = true
+      @goldCookieBonusTimer = rand(300*60)
     end
 
     # If a unit is clicked, we try to buy it
@@ -92,6 +122,8 @@ class GameWindow < Gosu::Window
     end
     @font.draw("Amount", x+400, 20, 0)
     @font.draw("Cps", x+500, 20, 0)
+
+    @goldCookie.draw
     @cookie.draw
     @units.each { |inst|  inst.draw }
   end
