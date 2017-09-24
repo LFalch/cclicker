@@ -32,8 +32,8 @@ class GameWindow < Gosu::Window
       ["factory",               "Factory",   1.3e5,    260],
       ["bank",                  "Bank",      1.4e6,  1.4e3],
     ])
-    @konami = Cheat.new([Gosu::KbUp, Gosu::KbUp, Gosu::KbDown, Gosu::KbDown,
-      Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA])
+    @konami = Cheat.new(Gosu::KbUp, Gosu::KbUp, Gosu::KbDown, Gosu::KbDown,
+      Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA)
     @timeHidden = true
     @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
     @goldCookieBonus = false
