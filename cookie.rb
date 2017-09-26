@@ -37,40 +37,21 @@ class Cookie
 end
 
 class GoldenCookie < Cookie
-  attr_reader :enabled, :timer
+  attr_reader :timer
+  attr_accessor :enabled
   def initialize(window, x, y, img_file)
     @window, @x, @y, @img_file = window, x, y, img_file
     @image   = Gosu::Image.new(@img_file)
     @radius  = 96.0/2
     @scale   = 2 * @radius / @image.height
-
-    reset
+    @enabled = false
   end
 
   def in_range?(x, y)
     @enabled && super
   end
 
-  def speedUp
-    @timer /= 10
-  end
-
-  def reset
-    @timer = rand(1200*60)+1200*60
-    @enabled = false
-  end
-
-  def tick
-    if @timer <= 0
-      @enabled = true
-    else
-      @timer -= 1
-    end
-  end
-
   def draw
-    if @enabled
-      super
-    end
+    @enabled && super
   end
 end
