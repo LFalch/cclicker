@@ -5,6 +5,7 @@ require 'gosu'
 require_relative 'cookie'
 require_relative 'unit'
 require_relative 'cheat'
+require_relative 'timer'
 
 def mkUnits(window, list)
   units = []
@@ -36,11 +37,24 @@ class GameWindow < Gosu::Window
       Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA)
     @timeHidden = true
     @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
-    @goldCookieBonusTimer = 0
+    @timers = []
+    waitForGoldenCookie
   end
 
   def needs_cursor?
     true
+  end
+
+  def startTimer(name, delay, callback=nil, arg=nil)
+    timer = Timer.new(delay, callback, arg)
+    @timers << [name, timer]
+  end
+
+  def findTimer(name)
+    sel = @timers.select{ |a| a[0] == name }
+    if sel.size > 0
+      sel[0][1]
+    end
   end
 
   def getTotalCps
@@ -48,30 +62,38 @@ class GameWindow < Gosu::Window
     @units.each { |inst|
       totalCps += inst.cps * inst.number
     }
-    if @goldCookieBonusTimer > 0
+    if findTimer("goldenCookieActive")
       totalCps *= 1.5
     end
     return totalCps
   end
 
+  def waitForGoldenCookie(arg=nil)
+    startTimer("waitForGoldenCookie", rand(30*60), self.method(:enableGoldenCookie))
+  end
+
+  def enableGoldenCookie(arg)
+    @goldCookie.enabled = true
+  end
+
   # This event is checked 60 times per second.
   def update
-    @goldCookie.tick
+    @timers.reject! { |timer| timer[1].update }
 
-    if @goldCookieBonusTimer > 0
-      @goldCookieBonusTimer -= 1
-
-      if @goldCookieBonusTimer <= 0
-        self.caption = "Cookie Clicker"
+    if findTimer("goldenCookieActive")
+      multiplier = 1.5
+      self.caption = "Cookie Clicker - [Golden Bonus Timer: " + \
+          "#{(findTimer("goldenCookieActive").getvalue/60.0).round(1)}]"
+    else
+      multiplier = 1
+      if findTimer("waitForGoldenCookie")
+        self.caption = "Cookie Clicker - Size: #{@timers.size} , " + \
+            "Wait: #{(findTimer("waitForGoldenCookie").getvalue/60.0).round(1)}"
       else
-        self.caption = "Cookie Clicker - [Golden Bonus Timer: #{(@goldCookieBonusTimer/60.0).round(1)}]"
+        self.caption = "Cookie Clicker - Size: #{@timers.size}"
       end
     end
 
-    multiplier = 1
-    if @goldCookieBonusTimer > 0
-      multiplier *= 1.5
-    end
     @units.each { |inst|
       @cookie.increase(multiplier * inst.cps * inst.number / 60.0)
     }
@@ -86,8 +108,8 @@ class GameWindow < Gosu::Window
 
     if @goldCookie.in_range?(x, y)
       @cookie.increase(getTotalCps * 100)
-      @goldCookie.reset
-      @goldCookieBonusTimer = rand(300*60)
+      @goldCookie.enabled = false
+      startTimer("goldenCookieActive", rand(30*60), self.method(:waitForGoldenCookie), nil)
     end
 
     # If a unit is clicked, we try to buy it
