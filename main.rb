@@ -38,15 +38,15 @@ class GameWindow < Gosu::Window
     @timeHidden = true
     @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
     @timers = []
-    waitForGoldenCookie(nil)
+    waitForGoldenCookie
   end
 
   def needs_cursor?
     true
   end
 
-  def startTimer(name, delay, meth, arg)
-    timer = Timer.new(delay, meth, arg)
+  def startTimer(name, delay, callback=nil, arg=nil)
+    timer = Timer.new(delay, callback, arg)
     @timers << [name, timer]
   end
 
@@ -68,10 +68,10 @@ class GameWindow < Gosu::Window
     return totalCps
   end
 
-  def waitForGoldenCookie(arg)
-    startTimer("waitForGoldenCookie", rand(30*60), self.method(:enableGoldenCookie), nil)
+  def waitForGoldenCookie(arg=nil)
+    startTimer("waitForGoldenCookie", rand(30*60), self.method(:enableGoldenCookie))
   end
-  
+
   def enableGoldenCookie(arg)
     @goldCookie.enabled = true
   end

@@ -1,6 +1,5 @@
 class Cheat
   def initialize(*keys)
-    puts keys
     @keys = keys
     @progress = 0
   end

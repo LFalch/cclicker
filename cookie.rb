@@ -37,7 +37,6 @@ class Cookie
 end
 
 class GoldenCookie < Cookie
-  attr_reader :timer
   attr_accessor :enabled
   def initialize(window, x, y, img_file)
     @window, @x, @y, @img_file = window, x, y, img_file
