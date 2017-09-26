@@ -11,8 +11,8 @@ class Cheat
       @progress += 1
 
       if @progress == @keys.length
-        return true
         @progress = 0
+        return true
       end
     else
       @progress = 0
