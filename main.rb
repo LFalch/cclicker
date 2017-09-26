@@ -36,7 +36,6 @@ class GameWindow < Gosu::Window
       Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA)
     @timeHidden = true
     @goldCookie = GoldenCookie.new(self, 30, 83, "media/goldCookie.png")
-    @goldCookieBonus = false
     @goldCookieBonusTimer = 0
   end
 
@@ -49,7 +48,7 @@ class GameWindow < Gosu::Window
     @units.each { |inst|
       totalCps += inst.cps * inst.number
     }
-    if @goldCookieBonus
+    if @goldCookieBonusTimer > 0
       totalCps *= 1.5
     end
     return totalCps
@@ -59,11 +58,10 @@ class GameWindow < Gosu::Window
   def update
     @goldCookie.tick
 
-    if @goldCookieBonus
+    if @goldCookieBonusTimer > 0
       @goldCookieBonusTimer -= 1
 
       if @goldCookieBonusTimer <= 0
-        @goldCookieBonus = false
         self.caption = "Cookie Clicker"
       else
         self.caption = "Cookie Clicker - [Golden Bonus Timer: #{(@goldCookieBonusTimer/60.0).round(1)}]"
@@ -71,7 +69,7 @@ class GameWindow < Gosu::Window
     end
 
     multiplier = 1
-    if @goldCookieBonus
+    if @goldCookieBonusTimer > 0
       multiplier *= 1.5
     end
     @units.each { |inst|
@@ -89,7 +87,6 @@ class GameWindow < Gosu::Window
     if @goldCookie.in_range?(x, y)
       @cookie.increase(getTotalCps * 100)
       @goldCookie.reset
-      @goldCookieBonus = true
       @goldCookieBonusTimer = rand(300*60)
     end
 
