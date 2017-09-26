@@ -9,7 +9,8 @@ def humanise(num)
 end
 
 class Unit
-  attr_reader :number, :cps
+  attr_reader :number
+  attr_accessor :cps
 
   def initialize(window, x, y, img, name, cost, cps)
     @window, @x, @y, @name, @cost, @cps = window, x, y, name, cost, cps

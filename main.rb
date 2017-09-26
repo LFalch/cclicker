@@ -6,6 +6,8 @@ require_relative 'cookie'
 require_relative 'unit'
 require_relative 'cheat'
 require_relative 'timer'
+require_relative 'upgrade'
+require_relative 'achievement'
 
 def mkUnits(window, list)
   units = []
@@ -20,7 +22,6 @@ class GameWindow < Gosu::Window
 
   def initialize
     super(940, 600, false)  # Set size of window
-    self.caption = "Cookie Clicker"
     @font   = Gosu::Font.new(self, Gosu.default_font_name, 24)
 
     @cookie = Cookie.new(self, 100, 100, "media/PerfectCookie.png")
@@ -33,6 +34,12 @@ class GameWindow < Gosu::Window
       ["factory",               "Factory",   1.3e5,    260],
       ["bank",                  "Bank",      1.4e6,  1.4e3],
     ])
+    @upgrades = [
+      Upgrade.new(self, "CursorIconTransparent", "Cursor upgrade", 1e9, Proc.new { |w|
+        @units[1].cps = 0.2
+      })
+    ]
+    @achievements = []
     @konami = Cheat.new(Gosu::KbUp, Gosu::KbUp, Gosu::KbDown, Gosu::KbDown,
       Gosu::KbLeft, Gosu::KbRight, Gosu::KbLeft, Gosu::KbRight, Gosu::KbB, Gosu::KbA)
     @timeHidden = true
@@ -86,13 +93,12 @@ class GameWindow < Gosu::Window
           "#{(findTimer("goldenCookieActive").getvalue/60.0).round(1)}]"
     else
       multiplier = 1
-      if findTimer("waitForGoldenCookie")
-        self.caption = "Cookie Clicker - Size: #{@timers.size} , " + \
-            "Wait: #{(findTimer("waitForGoldenCookie").getvalue/60.0).round(1)}"
-      else
-        self.caption = "Cookie Clicker - Size: #{@timers.size}"
-      end
+      self.caption = "Cookie Clicker"
     end
+
+    @achievements.each { |inst|
+      inst.check(self)
+    }
 
     @units.each { |inst|
       @cookie.increase(multiplier * inst.cps * inst.number / 60.0)
@@ -122,6 +128,13 @@ class GameWindow < Gosu::Window
         end
       end
     }
+    @upgrades.reject! { |inst|
+      if inst.in_range?(x, y)
+        inst.apply(self)
+        return true
+      end
+      return false
+    }
   end
 
   def draw
@@ -143,6 +156,7 @@ class GameWindow < Gosu::Window
     @goldCookie.draw
     @cookie.draw
     @units.each { |inst|  inst.draw }
+    @upgrades.each{ |inst| inst.draw }
   end
 
   def button_down(id)
